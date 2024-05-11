@@ -57,19 +57,18 @@ contract CropInsurance is Ownable {
     Policy storage policy = userPolicies[msg.sender][policyIndex];
     require(policy.active, "Policy is not active");
 
-    // Check if settlement amount exceeds contract balance
+ 
     require(address(this).balance >= policy.settlementAmount, "Insufficient contract balance for settlement");
 
     if (temperature >= policy.thresholdTemperature) {
-        // Threshold temperature exceeded, trigger settlement payment
+       
         require(payable(msg.sender).send(policy.settlementAmount), "Failed to send settlement amount");
 
         emit ThresholdExceeded(msg.sender, policy.location, temperature, policy.settlementAmount);
 
-        // Deactivate policy after settlement
         policy.active = false;
     } else {
-        // Temperature below threshold, no settlement triggered
+        
         revert("Temperature below threshold, no settlement triggered");
     }
 }
@@ -79,9 +78,10 @@ contract CropInsurance is Ownable {
         return userPolicies[user].length;
     }
 
-    function getUserPolicy(address user, uint256 index) external view returns (string memory, uint256, uint256, uint256, bool) {
-        require(index < userPolicies[user].length, "Invalid policy index");
-        Policy storage policy = userPolicies[user][index];
-        return (policy.location, policy.premium, policy.thresholdTemperature, policy.settlementAmount, policy.active);
-    }
+    function getUserPolicy(address user) external view returns (string memory, uint256, uint256, uint256, bool) {
+    require(userPolicies[user].length > 0, "User has no policies");
+    Policy storage policy = userPolicies[user][0]; // Assuming the user has only one policy
+    return (policy.location, policy.premium, policy.thresholdTemperature, policy.settlementAmount, policy.active);
+}
+
 }
